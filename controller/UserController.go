@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 	"priviledge/common"
 	"priviledge/model"
@@ -101,7 +102,15 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
-	token := "HelloWink"
+	token, err := common.ReleaseToken(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"msg":  "生成Token失败",
+		})
+		log.Printf("Token generate error : %v", err)
+		return
+	}
 	// 返回结果
 
 	c.JSON(http.StatusOK, gin.H{
@@ -121,4 +130,16 @@ func isTelephoneExist(db *gorm.DB, telephone string) bool {
 		return true
 	}
 	return false
+}
+
+func Info(c *gin.Context) {
+	user, _ := c.Get("user")
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"data": gin.H{
+			"user": user,
+		},
+		"msg": "成功",
+	})
 }
