@@ -26,7 +26,7 @@ func InitConfig() {
 	workDir, _ := os.Getwd()
 	viper.SetConfigName("application")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(workDir + "/config")
+	viper.AddConfigPath(workDir + "/backend/config")
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic("Read Configuration Error")
