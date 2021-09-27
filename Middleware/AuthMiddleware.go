@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"priviledge/common"
 	"priviledge/model"
+	"priviledge/response"
 	"strings"
 )
 
@@ -13,10 +14,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := c.GetHeader("Authorization")
 
 		if tokenString == "" || !strings.HasPrefix(tokenString, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code": 401,
-				"msg":  "权限不足",
-			})
+			response.Response(c, http.StatusUnauthorized, 401, nil, "权限不足")
 			c.Abort()
 			return
 		}
@@ -24,10 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString = tokenString[7:]
 		token, claims, err := common.ParseToken(tokenString)
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code": 401,
-				"msg":  "权限不足",
-			})
+			response.Response(c, http.StatusUnauthorized, 401, nil, "权限不足")
 			c.Abort()
 			return
 		}
@@ -41,10 +36,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// 用户
 		if user.ID == 0 {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code": 401,
-				"msg":  "权限不足",
-			})
+			response.Response(c, http.StatusUnauthorized, 401, nil, "权限不足")
 			c.Abort()
 			return
 		}

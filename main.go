@@ -3,22 +3,32 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/spf13/viper"
+	"os"
 	"priviledge/common"
 )
 
-
-
-func main(){
+func main() {
+	InitConfig()
 	db := common.InitDB()
-	defer
-		db.Close()
+	defer db.Close()
 
 	r := gin.Default()
 	r = CollectRouter(r)
-	panic(r.Run())
+	port := viper.GetString("server.port")
+	if port != "" {
+		panic(r.Run(":" + port))
+	}
+	// panic(r.Run())
 }
 
-
-
-
-
+func InitConfig() {
+	workDir, _ := os.Getwd()
+	viper.SetConfigName("application")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(workDir + "/config")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic("Read Configuration Error")
+	}
+}
