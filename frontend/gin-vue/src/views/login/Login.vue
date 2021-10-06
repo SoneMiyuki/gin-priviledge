@@ -35,9 +35,10 @@
     </div>
 </template>
 <script>
+
+import { mapActions } from 'vuex';
 import { required, minLength, maxLength } from 'vuelidate/lib/validators';
 import customValidator from '@/helper/validator';
-import storageService from '@/service/storageService';
 
 export default {
   data() {
@@ -63,6 +64,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions('userModule', { userlogin: 'login' }),
     validateState(name) {
       const { $dirty, $error } = this.$v.user[name];
       return $dirty ? !$error : null;
@@ -72,13 +74,15 @@ export default {
       if (this.$v.user.$anyError) {
         return;
       }
-      console.log('');
-      const api = 'http://localhost:8090/api/auth/login';
-      this.axios.post(api, { ...this.user }).then((res) => {
-        storageService.set(storageService.USER_TOKEN, res.data.data.token);
+      this.userlogin(this.user).then(() => {
         this.$router.replace({ name: 'Home' });
       }).catch((err) => {
         console.log('err:', err.response.data.msg);
+        this.$bvToast.toast(err.response.data.msg, {
+          title: '数据验证错误',
+          variant: 'danger',
+          solid: true,
+        });
       });
     },
   },
