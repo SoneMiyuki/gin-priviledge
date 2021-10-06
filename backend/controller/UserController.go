@@ -15,10 +15,15 @@ import (
 
 func Register(c *gin.Context) {
 	DB := common.GetDB()
+	//var requestMap = make(map[string]string)
+	//json.NewDecoder(c.Request.Body).Decode(&requestMap)
+	var requestUser = model.User{}
+	c.Bind(&requestUser)
+
 	// 获取参数
-	name := c.PostForm("name")
-	telephone := c.PostForm("telephone")
-	password := c.PostForm("password")
+	name := requestUser.Name
+	telephone := requestUser.Telephone
+	password := requestUser.Password
 	// 数据验证
 	if len(telephone) != 11 {
 		response.Response(c, http.StatusUnprocessableEntity, 422, nil, "手机号码不符合格式")
@@ -52,18 +57,29 @@ func Register(c *gin.Context) {
 		Password:  string(hasedPassword),
 	}
 	DB.Create(&newUser)
-
-	// 返回结果
-	response.Success(c, nil, "注册成功")
+	token, err := common.ReleaseToken(newUser)
+	if err != nil {
+		response.Response(c, http.StatusInternalServerError, 500, nil, "数据库内部错误")
+		log.Printf("Token generate error : %v", err)
+		return
+	}
+	response.Success(c, gin.H{
+		"token": token,
+		"user": newUser,
+	}, "登录成功")
 
 }
 
 func Login(c *gin.Context) {
 	DB := common.GetDB()
 	// 获取参数
-	telephone := c.PostForm("telephone")
-	password := c.PostForm("password")
-	// 数据验证
+	var requestUser = model.User{}
+	c.Bind(&requestUser)
+
+	// 获取参数
+	telephone := requestUser.Telephone
+	password := requestUser.Password
+
 	if len(telephone) != 11 {
 		response.Response(c, http.StatusUnprocessableEntity, 422, nil, "手机号码不符合格式")
 		return
